@@ -1,0 +1,90 @@
+import { useEffect, useState } from 'react'
+import { getTask, streamTask } from '@/api/client'
+import type { SubtaskResponse } from '@/types'
+
+interface StreamState {
+  subtasks: SubtaskResponse[]
+  taskStatus: string
+  finalReport: string | null
+}
+
+const INITIAL: StreamState = { subtasks: [], taskStatus: 'planning', finalReport: null }
+
+function eventToStatus(type: string): SubtaskResponse['status'] | null {
+  switch (type) {
+    case 'started':  return 'in_progress'
+    case 'completed': return 'completed'
+    case 'failed':
+    case 'blocked':  return 'failed'
+    case 'retrying': return 'pending'
+    default:         return null
+  }
+}
+
+export function useTaskStream(taskId: number | null): StreamState {
+  const [state, setState] = useState<StreamState>(INITIAL)
+
+  useEffect(() => {
+    if (taskId === null) { setState(INITIAL); return }
+
+    setState(INITIAL)
+    let cancelled = false
+    let pollTimer: ReturnType<typeof setInterval> | null = null
+    let cancelStream: (() => void) | null = null
+
+    function startPolling() {
+      if (cancelled) return
+      pollTimer = setInterval(async () => {
+        try {
+          const task = await getTask(taskId)
+          if (cancelled) return
+          setState({ subtasks: task.subtasks, taskStatus: task.status, finalReport: task.final_report })
+          if (task.status === 'completed' || task.status === 'failed') {
+            if (pollTimer) clearInterval(pollTimer)
+          }
+        } catch { /* keep polling */ }
+      }, 2000)
+    }
+
+    getTask(taskId).then(task => {
+      if (cancelled) return
+      setState({ subtasks: task.subtasks, taskStatus: task.status, finalReport: task.final_report })
+
+      if (task.status === 'completed' || task.status === 'failed') return
+
+      cancelStream = streamTask(
+        taskId,
+        (event) => {
+          if (cancelled) return
+          if (event.type === 'task_finished') {
+            getTask(taskId).then(final => {
+              if (cancelled) return
+              setState({ subtasks: final.subtasks, taskStatus: final.status, finalReport: final.final_report })
+            }).catch(() => {})
+          } else if (event.subtask_id != null) {
+            const newStatus = eventToStatus(event.type)
+            if (newStatus) {
+              setState(prev => ({
+                ...prev,
+                subtasks: prev.subtasks.map(s =>
+                  s.id === event.subtask_id ? { ...s, status: newStatus } : s
+                ),
+              }))
+            }
+          }
+        },
+        startPolling,
+      )
+    }).catch(() => {
+      if (!cancelled) startPolling()
+    })
+
+    return () => {
+      cancelled = true
+      cancelStream?.()
+      if (pollTimer) clearInterval(pollTimer)
+    }
+  }, [taskId])
+
+  return state
+}
