@@ -27,6 +27,7 @@ export function useTaskStream(taskId: number | null): StreamState {
   useEffect(() => {
     if (taskId === null) { setState(INITIAL); return }
 
+    const id: number = taskId
     setState(INITIAL)
     let cancelled = false
     let pollTimer: ReturnType<typeof setInterval> | null = null
@@ -36,7 +37,7 @@ export function useTaskStream(taskId: number | null): StreamState {
       if (cancelled) return
       pollTimer = setInterval(async () => {
         try {
-          const task = await getTask(taskId)
+          const task = await getTask(id)
           if (cancelled) return
           setState({ subtasks: task.subtasks, taskStatus: task.status, finalReport: task.final_report })
           if (task.status === 'completed' || task.status === 'failed') {
@@ -46,18 +47,18 @@ export function useTaskStream(taskId: number | null): StreamState {
       }, 2000)
     }
 
-    getTask(taskId).then(task => {
+    getTask(id).then(task => {
       if (cancelled) return
       setState({ subtasks: task.subtasks, taskStatus: task.status, finalReport: task.final_report })
 
       if (task.status === 'completed' || task.status === 'failed') return
 
       cancelStream = streamTask(
-        taskId,
+        id,
         (event) => {
           if (cancelled) return
           if (event.type === 'task_finished') {
-            getTask(taskId).then(final => {
+            getTask(id).then(final => {
               if (cancelled) return
               setState({ subtasks: final.subtasks, taskStatus: final.status, finalReport: final.final_report })
             }).catch(() => {})
