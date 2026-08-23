@@ -5,6 +5,7 @@ export interface SubtaskResponse {
   depends_on: number[]
   output: Record<string, unknown> | null
   retry_count: number
+  instructions: string
 }
 
 export interface TaskResponse {
@@ -26,4 +27,9 @@ export interface SSEEvent {
   subtask_id: number | null
   payload: Record<string, unknown>
   status?: string
+}
+
+export interface TokenPair {
+  access_token: string
+  refresh_token: string
 }

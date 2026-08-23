@@ -6,9 +6,11 @@ interface StreamState {
   subtasks: SubtaskResponse[]
   taskStatus: string
   finalReport: string | null
+  userRequest: string | null
+  logs: Record<number, string[]>
 }
 
-const INITIAL: StreamState = { subtasks: [], taskStatus: 'planning', finalReport: null }
+const INITIAL: StreamState = { subtasks: [], taskStatus: 'planning', finalReport: null, userRequest: null, logs: {} }
 
 function eventToStatus(type: string): SubtaskResponse['status'] | null {
   switch (type) {
@@ -39,7 +41,7 @@ export function useTaskStream(taskId: number | null): StreamState {
         try {
           const task = await getTask(id)
           if (cancelled) return
-          setState({ subtasks: task.subtasks, taskStatus: task.status, finalReport: task.final_report })
+          setState(prev => ({ ...prev, subtasks: task.subtasks, taskStatus: task.status, finalReport: task.final_report, userRequest: task.user_request }))
           if (task.status === 'completed' || task.status === 'failed') {
             if (pollTimer) clearInterval(pollTimer)
           }
@@ -49,7 +51,7 @@ export function useTaskStream(taskId: number | null): StreamState {
 
     getTask(id).then(task => {
       if (cancelled) return
-      setState({ subtasks: task.subtasks, taskStatus: task.status, finalReport: task.final_report })
+      setState({ subtasks: task.subtasks, taskStatus: task.status, finalReport: task.final_report, userRequest: task.user_request, logs: {} })
 
       if (task.status === 'completed' || task.status === 'failed') return
 
@@ -60,8 +62,17 @@ export function useTaskStream(taskId: number | null): StreamState {
           if (event.type === 'task_finished') {
             getTask(id).then(final => {
               if (cancelled) return
-              setState({ subtasks: final.subtasks, taskStatus: final.status, finalReport: final.final_report })
+              setState({ subtasks: final.subtasks, taskStatus: final.status, finalReport: final.final_report, userRequest: final.user_request, logs: {} })
             }).catch(() => {})
+          } else if (event.type === 'subtask_progress' && event.subtask_id != null) {
+            const message = event.payload.message as string
+            setState(prev => ({
+              ...prev,
+              logs: {
+                ...prev.logs,
+                [event.subtask_id!]: [...(prev.logs[event.subtask_id!] ?? []), message],
+              },
+            }))
           } else if (event.subtask_id != null) {
             const newStatus = eventToStatus(event.type)
             if (newStatus) {
