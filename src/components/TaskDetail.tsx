@@ -45,7 +45,7 @@ export function TaskDetail({ taskId, displayNumber, onStatusChange }: Props) {
 
       <AgentFeed subtasks={subtasks} logs={logs} />
 
-      {finalReport && <ReportView markdown={finalReport} />}
+      {finalReport && <ReportView markdown={finalReport} filename={`aria-report-${displayNumber}.md`} />}
     </div>
   )
 }
