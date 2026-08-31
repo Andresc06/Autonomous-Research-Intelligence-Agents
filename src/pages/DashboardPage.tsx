@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AuthGate } from '@/components/AuthGate'
 import { TaskSidebar } from '@/components/TaskSidebar'
 import { TaskDetail } from '@/components/TaskDetail'
@@ -42,6 +42,14 @@ export function DashboardPage() {
     )
   }, [])
 
+  // Maps each task's real database id to "when this user created it" (1st, 2nd, ...)
+  // instead of showing the raw id, which is sequential and shared across every
+  // account - it would let someone infer how many tasks exist app-wide, not just theirs.
+  const displayNumbers = useMemo(() => {
+    const oldestFirst = [...tasks].sort((a, b) => a.id - b.id)
+    return new Map(oldestFirst.map((t, index) => [t.id, index + 1]))
+  }, [tasks])
+
   if (!isAuthenticated) {
     return <AuthGate />
   }
@@ -51,6 +59,7 @@ export function DashboardPage() {
       <TaskSidebar
         tasks={tasks}
         selectedId={selectedId}
+        displayNumbers={displayNumbers}
         onSelect={setSelectedId}
         onTaskCreated={handleTaskCreated}
         onUnauthorized={handleUnauthorized}
@@ -96,6 +105,7 @@ export function DashboardPage() {
           <TaskDetail
             key={selectedId}
             taskId={selectedId}
+            displayNumber={displayNumbers.get(selectedId) ?? selectedId}
             onStatusChange={handleStatusChange}
           />
         )}

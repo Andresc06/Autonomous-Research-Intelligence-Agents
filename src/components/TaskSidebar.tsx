@@ -7,6 +7,7 @@ import type { TaskSummary } from '@/types'
 interface Props {
   tasks: TaskSummary[]
   selectedId: number | null
+  displayNumbers: Map<number, number>
   onSelect: (id: number) => void
   onTaskCreated: (task: TaskSummary) => void
   onUnauthorized: () => void
@@ -19,7 +20,7 @@ const STATUS_COLOR: Record<string, string> = {
   failed:    'text-[#f85149]',
 }
 
-export function TaskSidebar({ tasks, selectedId, onSelect, onTaskCreated, onUnauthorized }: Props) {
+export function TaskSidebar({ tasks, selectedId, displayNumbers, onSelect, onTaskCreated, onUnauthorized }: Props) {
   const [input, setInput] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -76,7 +77,7 @@ export function TaskSidebar({ tasks, selectedId, onSelect, onTaskCreated, onUnau
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="font-mono text-xs text-[#484f58]">#{task.id}</span>
+              <span className="font-mono text-xs text-[#484f58]">#{displayNumbers.get(task.id) ?? task.id}</span>
               <span className={`font-mono text-xs ${STATUS_COLOR[task.status] ?? 'text-[#8b949e]'}`}>&#x25cf;</span>
             </div>
             <p className="mt-1 line-clamp-2 font-mono text-xs text-[#c9d1d9]">

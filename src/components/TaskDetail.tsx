@@ -5,10 +5,11 @@ import { ReportView } from '@/components/ReportView'
 
 interface Props {
   taskId: number
+  displayNumber: number
   onStatusChange: (taskId: number, status: string) => void
 }
 
-export function TaskDetail({ taskId, onStatusChange }: Props) {
+export function TaskDetail({ taskId, displayNumber, onStatusChange }: Props) {
   const { subtasks, taskStatus, finalReport, userRequest, logs } = useTaskStream(taskId)
 
   useEffect(() => {
@@ -26,7 +27,7 @@ export function TaskDetail({ taskId, onStatusChange }: Props) {
       {/* Header */}
       <div className="mb-5 border-b border-[#21262d] pb-5">
         <div className="mb-2 flex items-center justify-between">
-          <span className="font-mono text-xs text-[#484f58]">task #{taskId}</span>
+          <span className="font-mono text-xs text-[#484f58]">task #{displayNumber}</span>
           <span className={`font-mono text-xs uppercase tracking-widest ${statusColor}`}>
             {taskStatus}
             {(taskStatus === 'running' || taskStatus === 'planning') && (
