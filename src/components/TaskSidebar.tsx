@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { createTask, UnauthorizedError } from '@/api/client'
+import { StatusIcon, type TaskStatus } from '@/lib/status'
 import type { TaskSummary } from '@/types'
 
 interface Props {
@@ -11,13 +12,6 @@ interface Props {
   onSelect: (id: number) => void
   onTaskCreated: (task: TaskSummary) => void
   onUnauthorized: () => void
-}
-
-const STATUS_COLOR: Record<string, string> = {
-  planning:  'text-[#8b949e]',
-  running:   'text-[#58a6ff]',
-  completed: 'text-[#3fb950]',
-  failed:    'text-[#f85149]',
 }
 
 export function TaskSidebar({ tasks, selectedId, displayNumbers, onSelect, onTaskCreated, onUnauthorized }: Props) {
@@ -44,21 +38,23 @@ export function TaskSidebar({ tasks, selectedId, displayNumbers, onSelect, onTas
   }
 
   return (
-    <div className="flex h-full w-64 shrink-0 flex-col border-r border-[#30363d] bg-[#0d1117]">
-      <form onSubmit={handleSubmit} className="space-y-2 border-b border-[#30363d] p-3">
+    // border-hairline-strong here (not the default hairline) is a deliberate
+    // exception: this is a major layout divider, not a content-card border.
+    <div className="flex h-full w-64 shrink-0 flex-col border-r border-hairline-strong bg-canvas">
+      <form onSubmit={handleSubmit} className="space-y-2 border-b border-hairline-strong p-3">
         <Textarea
           placeholder="Describe a task..."
           value={input}
           onChange={e => setInput(e.target.value)}
           rows={3}
-          className="resize-none border-[#30363d] bg-[#161b22] font-mono text-xs text-[#e6edf3] placeholder:text-[#484f58] focus-visible:ring-[#58a6ff]"
+          className="resize-none border-hairline-strong bg-surface font-mono text-xs text-fg placeholder:text-fg-subtle focus-visible:ring-accent"
           onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleSubmit(e) }}
         />
-        {error && <p className="font-mono text-xs text-[#f85149]">{error}</p>}
+        {error && <p className="font-mono text-xs text-danger">{error}</p>}
         <Button
           type="submit"
           disabled={submitting || !input.trim()}
-          className="w-full bg-[#238636] font-mono text-xs text-white hover:bg-[#2ea043] disabled:opacity-40"
+          className="w-full bg-accent-emphasis font-mono text-xs text-white hover:bg-accent disabled:opacity-40"
         >
           {submitting ? 'submitting...' : '$ run task'}
         </Button>
@@ -66,21 +62,21 @@ export function TaskSidebar({ tasks, selectedId, displayNumbers, onSelect, onTas
 
       <div className="flex-1 overflow-y-auto">
         {tasks.length === 0 && (
-          <p className="p-4 font-mono text-xs text-[#484f58]">No tasks yet.</p>
+          <p className="p-4 font-mono text-xs text-fg-subtle">No tasks yet.</p>
         )}
         {[...tasks].reverse().map(task => (
           <button
             key={task.id}
             onClick={() => onSelect(task.id)}
-            className={`w-full border-b border-[#21262d] p-3 text-left transition-colors hover:bg-[#161b22] ${
-              selectedId === task.id ? 'bg-[#161b22]' : ''
+            className={`w-full border-b border-hairline p-3 text-left transition-colors ${
+              selectedId === task.id ? 'bg-surface-raised' : 'hover:bg-surface'
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="font-mono text-xs text-[#484f58]">#{displayNumbers.get(task.id) ?? task.id}</span>
-              <span className={`font-mono text-xs ${STATUS_COLOR[task.status] ?? 'text-[#8b949e]'}`}>&#x25cf;</span>
+              <span className="font-mono text-xs text-fg-subtle">#{displayNumbers.get(task.id) ?? task.id}</span>
+              <StatusIcon status={task.status as TaskStatus} kind="task" size={12} />
             </div>
-            <p className="mt-1 line-clamp-2 font-mono text-xs text-[#c9d1d9]">
+            <p className="mt-1 line-clamp-2 font-mono text-xs text-fg-body">
               {task.user_request}
             </p>
           </button>

@@ -1,7 +1,9 @@
 import { useEffect } from 'react'
+import { AlertCircle } from 'lucide-react'
 import { useTaskStream } from '@/hooks/useTaskStream'
 import { AgentFeed } from '@/components/AgentFeed'
 import { ReportView } from '@/components/ReportView'
+import { StatusIcon, TASK_STATUS_META, type TaskStatus } from '@/lib/status'
 
 interface Props {
   taskId: number
@@ -16,32 +18,27 @@ export function TaskDetail({ taskId, displayNumber, onStatusChange }: Props) {
     onStatusChange(taskId, taskStatus)
   }, [taskId, taskStatus, onStatusChange])
 
-  const statusColor =
-    taskStatus === 'completed' ? 'text-[#3fb950]'
-    : taskStatus === 'failed'  ? 'text-[#f85149]'
-    : taskStatus === 'running' ? 'text-[#58a6ff]'
-    : 'text-[#8b949e]'
+  const statusMeta = TASK_STATUS_META[taskStatus as TaskStatus]
 
   return (
     <div className="flex h-full flex-col overflow-y-auto p-6">
       {/* Header */}
-      <div className="mb-5 border-b border-[#21262d] pb-5">
+      <div className="mb-5 border-b border-hairline pb-5">
         <div className="mb-2 flex items-center justify-between">
-          <span className="font-mono text-xs text-[#484f58]">task #{displayNumber}</span>
-          <span className={`font-mono text-xs uppercase tracking-widest ${statusColor}`}>
+          <span className="font-mono text-xs text-fg-subtle">task #{displayNumber}</span>
+          <span className={`flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest ${statusMeta.iconClass}`}>
+            <StatusIcon status={taskStatus as TaskStatus} kind="task" />
             {taskStatus}
-            {(taskStatus === 'running' || taskStatus === 'planning') && (
-              <span className="ml-2 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-current align-middle" />
-            )}
           </span>
         </div>
         {userRequest && (
-          <p className="text-sm text-[#c9d1d9]">{userRequest}</p>
+          <p className="text-sm text-fg-body">{userRequest}</p>
         )}
       </div>
 
       {taskStatus === 'failed' && (
-        <div className="mb-4 rounded border border-red-800 bg-red-950/30 px-4 py-3 font-mono text-sm text-[#f85149]">
+        <div className="mb-4 flex items-center gap-2 rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 font-mono text-sm text-danger">
+          <AlertCircle size={16} className="shrink-0" />
           Task failed. One or more agents encountered an error.
         </div>
       )}

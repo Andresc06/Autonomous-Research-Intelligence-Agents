@@ -1,25 +1,25 @@
 import { NavLink } from 'react-router-dom'
-import { Workflow } from 'lucide-react'
+import { Network } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `font-mono text-xs uppercase tracking-wider transition-colors ${
-    isActive ? 'text-[#e6edf3]' : 'text-[#484f58] hover:text-[#8b949e]'
+    isActive ? 'text-fg' : 'text-fg-subtle hover:text-fg-muted'
   }`
 
 export function AppHeader() {
   const { isAuthenticated, userEmail, logout } = useAuth()
 
   return (
-    <header className="shrink-0 border-b border-[#21262d] bg-[#0d1117] px-6 py-3">
+    <header className="shrink-0 border-b border-hairline bg-canvas px-6 py-3">
       <div className="flex items-center justify-between">
         <NavLink to="/" className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#1f6feb]/40 bg-[#1f6feb]/10">
-            <Workflow size={16} className="text-[#58a6ff]" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-accent-emphasis/40 bg-accent-emphasis/10">
+            <Network size={16} className="text-accent" />
           </div>
           <div>
-            <span className="font-mono text-sm font-bold tracking-widest text-[#e6edf3]">ARIA</span>
-            <span className="ml-3 hidden font-mono text-xs text-[#484f58] sm:inline">
+            <span className="font-mono text-sm font-bold tracking-widest text-fg">ARIA</span>
+            <span className="ml-3 hidden font-mono text-xs text-fg-subtle sm:inline">
               Autonomous Research Intelligence Agents
             </span>
           </div>
@@ -33,12 +33,12 @@ export function AppHeader() {
           </nav>
 
           {isAuthenticated && (
-            <div className="flex items-center gap-3 border-l border-[#21262d] pl-6">
-              <span className="hidden font-mono text-xs text-[#484f58] sm:inline">{userEmail}</span>
+            <div className="flex items-center gap-3 border-l border-hairline pl-6">
+              <span className="hidden font-mono text-xs text-fg-subtle sm:inline">{userEmail}</span>
               <button
                 type="button"
                 onClick={() => void logout()}
-                className="font-mono text-xs uppercase tracking-wider text-[#484f58] transition-colors hover:text-[#f85149]"
+                className="font-mono text-xs uppercase tracking-wider text-fg-subtle transition-colors hover:text-danger"
               >
                 Sign out
               </button>
