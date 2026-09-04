@@ -1,7 +1,7 @@
 {
   "rewrites": [
-    { "source": "/tasks", "destination": "https://BACKEND-URL/tasks" },
-    { "source": "/tasks/:path*", "destination": "https://BACKEND-URL/tasks/:path*" },
-    { "source": "/auth/:path*", "destination": "https://BACKEND-URL/auth/:path*" }
+    { "source": "/tasks", "destination": "https://multi-agent-task-orchestrator-wxix.onrender.com/tasks" },
+    { "source": "/tasks/:path*", "destination": "https://multi-agent-task-orchestrator-wxix.onrender.com/tasks/:path*" },
+    { "source": "/auth/:path*", "destination": "https://multi-agent-task-orchestrator-wxix.onrender.com/auth/:path*" }
   ]
 }
