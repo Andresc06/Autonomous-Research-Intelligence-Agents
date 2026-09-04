@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/context/AuthContext'
@@ -87,6 +88,15 @@ export function AuthGate() {
         >
           {mode === 'login' ? "Don't have an account? Create one" : 'Already have an account? Sign in'}
         </button>
+
+        {mode === 'login' && (
+          <Link
+            to="/forgot-password"
+            className="block text-center font-mono text-xs text-[#484f58] hover:text-[#8b949e]"
+          >
+            Forgot password?
+          </Link>
+        )}
       </div>
     </div>
   )

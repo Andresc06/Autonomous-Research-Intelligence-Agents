@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Network } from 'lucide-react'
+import { Network, Settings } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -35,6 +35,13 @@ export function AppHeader() {
           {isAuthenticated && (
             <div className="flex items-center gap-3 border-l border-hairline pl-6">
               <span className="hidden font-mono text-xs text-fg-subtle sm:inline">{userEmail}</span>
+              <NavLink
+                to="/change-password"
+                className="text-fg-subtle transition-colors hover:text-accent"
+                aria-label="Change password"
+              >
+                <Settings size={14} />
+              </NavLink>
               <button
                 type="button"
                 onClick={() => void logout()}

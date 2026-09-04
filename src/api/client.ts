@@ -75,6 +75,28 @@ export async function logoutUser(): Promise<void> {
   } catch { /* best effort — tokens are already cleared locally */ }
 }
 
+export async function forgotPassword(email: string): Promise<{ reset_token: string | null }> {
+  const res = await fetch('/auth/forgot-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  })
+  if (!res.ok) throw new Error('Failed to request a password reset')
+  return res.json()
+}
+
+export async function resetPassword(token: string, newPassword: string): Promise<void> {
+  const res = await fetch('/auth/reset-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, new_password: newPassword }),
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error((body as { detail?: string }).detail ?? 'Invalid or expired reset token')
+  }
+}
+
 // ---- Authenticated requests ----
 
 async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
@@ -132,6 +154,18 @@ export async function createTask(userRequest: string): Promise<{ task_id: number
 export async function getTask(taskId: number): Promise<TaskResponse> {
   const res = await apiFetch(`/tasks/${taskId}`)
   if (!res.ok) throw new Error('Failed to fetch task')
+  return res.json()
+}
+
+export async function changePassword(currentPassword: string, newPassword: string): Promise<TokenPair> {
+  const res = await apiFetch('/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error((body as { detail?: string }).detail ?? 'Failed to change password')
+  }
   return res.json()
 }
 
