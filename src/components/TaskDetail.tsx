@@ -12,13 +12,26 @@ interface Props {
 }
 
 export function TaskDetail({ taskId, displayNumber, onStatusChange }: Props) {
-  const { subtasks, taskStatus, finalReport, userRequest, logs } = useTaskStream(taskId)
+  const { subtasks, taskStatus, finalReport, userRequest, logs, notFound } = useTaskStream(taskId)
 
   useEffect(() => {
-    onStatusChange(taskId, taskStatus)
-  }, [taskId, taskStatus, onStatusChange])
+    // Skip while notFound: the stream never resolved a real status
+    if (!notFound) onStatusChange(taskId, taskStatus)
+  }, [taskId, taskStatus, notFound, onStatusChange])
 
   const statusMeta = TASK_STATUS_META[taskStatus as TaskStatus]
+
+  if (notFound) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
+        <AlertCircle size={20} className="text-danger" />
+        <p className="font-mono text-sm text-fg">Couldn't load task #{displayNumber}</p>
+        <p className="max-w-xs text-xs text-fg-muted">
+          It may have been removed, or it doesn't belong to this account.
+        </p>
+      </div>
+    )
+  }
 
   return (
     <div className="flex h-full flex-col overflow-y-auto p-6">

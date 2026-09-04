@@ -17,6 +17,13 @@ export function DashboardPage() {
     if (!isAuthenticated) return
     let cancelled = false
 
+    // A stale selection from a previous account (logout, then a different login,
+    // no full page reload) would otherwise survive into a session with zero real
+    // tasks, pointing at a task id that isn't this user's - which useTaskStream
+    // can never resolve, since it belongs to nobody the current session can see.
+    setTasks([])
+    setSelectedId(null)
+
     listTasks()
       .then(fetched => { if (!cancelled) setTasks(fetched) })
       .catch(err => {

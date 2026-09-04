@@ -8,9 +8,17 @@ interface StreamState {
   finalReport: string | null
   userRequest: string | null
   logs: Record<number, string[]>
+  notFound: boolean
 }
 
-const INITIAL: StreamState = { subtasks: [], taskStatus: 'planning', finalReport: null, userRequest: null, logs: {} }
+const INITIAL: StreamState = {
+  subtasks: [],
+  taskStatus: 'planning',
+  finalReport: null,
+  userRequest: null,
+  logs: {},
+  notFound: false,
+}
 
 function eventToStatus(type: string): SubtaskResponse['status'] | null {
   switch (type) {
@@ -51,7 +59,14 @@ export function useTaskStream(taskId: number | null): StreamState {
 
     getTask(id).then(task => {
       if (cancelled) return
-      setState({ subtasks: task.subtasks, taskStatus: task.status, finalReport: task.final_report, userRequest: task.user_request, logs: {} })
+      setState({
+        subtasks: task.subtasks,
+        taskStatus: task.status,
+        finalReport: task.final_report,
+        userRequest: task.user_request,
+        logs: {},
+        notFound: false,
+      })
 
       if (task.status === 'completed' || task.status === 'failed') return
 
@@ -62,7 +77,13 @@ export function useTaskStream(taskId: number | null): StreamState {
           if (event.type === 'task_finished') {
             getTask(id).then(final => {
               if (cancelled) return
-              setState({ subtasks: final.subtasks, taskStatus: final.status, finalReport: final.final_report, userRequest: final.user_request, logs: {} })
+              setState(prev => ({
+                ...prev,
+                subtasks: final.subtasks,
+                taskStatus: final.status,
+                finalReport: final.final_report,
+                userRequest: final.user_request,
+              }))
             }).catch(() => {})
           } else if (event.type === 'subtask_progress' && event.subtask_id != null) {
             const message = event.payload.message as string
@@ -88,7 +109,9 @@ export function useTaskStream(taskId: number | null): StreamState {
         startPolling,
       )
     }).catch(() => {
-      if (!cancelled) startPolling()
+      // A failure here - most commonly a 404 because the task doesn't exist.
+      // Stopping here instead of polling forever is what turns a permanently-invalid id into a visible error.
+      if (!cancelled) setState({ ...INITIAL, notFound: true })
     })
 
     return () => {
