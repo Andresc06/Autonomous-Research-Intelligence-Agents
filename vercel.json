@@ -1,0 +1,7 @@
+{
+  "rewrites": [
+    { "source": "/tasks", "destination": "https://BACKEND-URL/tasks" },
+    { "source": "/tasks/:path*", "destination": "https://BACKEND-URL/tasks/:path*" },
+    { "source": "/auth/:path*", "destination": "https://BACKEND-URL/auth/:path*" }
+  ]
+}
